@@ -1,0 +1,120 @@
+<html>
+    <h1>Google Map with Polygon Overlay</h1>
+    <div id="map" style="height: 450px; margin: 20px; padding: 20px"></div>
+    <form method="post">
+        {% csrf_token %} 
+        <input type="hidden" name="vertices" id="vertices">
+        <input name="zonename" id="zonename" type="text">
+        <button type="submit">Submit</button>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js" integrity="sha512-pumBsjNRGGqkPzKHndZMaAG+bir374sORyzM3uulLV14lN5LyykqNk8eEeUlUkB3U0M4FApyaHraT65ihJhDpQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src='https://maps.googleapis.com/maps/api/js?key=AIzaSyBeQUngByPnQY_2khrrGcD1guFKO9krDuk&libraries=drawing,places'>
+    </script>
+    <script>
+        var map; // Global declaration of the map
+        var iw = new google.maps.InfoWindow(); // Global declaration of the infowindow
+        var lat_longs = new Array();
+        var markers = new Array();
+        var drawingManager;
+        var resetopt=false;
+    
+        function initialize() {
+          var myLatlng = new google.maps.LatLng(22.3039, 70.8022);
+          var myOptions = {
+            zoom: 13,
+            center: myLatlng,
+            mapTypeId: google.maps.MapTypeId.ROADMAP
+          }
+          map = new google.maps.Map(document.getElementById("map"), myOptions);
+          drawingManager = new google.maps.drawing.DrawingManager({
+            drawingMode: google.maps.drawing.OverlayType.POLYGON,
+            drawingControl: true,
+            drawingControlOptions: {
+              position: google.maps.ControlPosition.TOP_CENTER,
+              drawingModes: [google.maps.drawing.OverlayType.POLYGON]
+            },
+            polygonOptions: {
+              editable: true
+            }
+          });
+          drawingManager.setMap(map);
+    
+          google.maps.event.addListener(drawingManager, "overlaycomplete", function(event) {
+            var newShape = event.overlay;
+            newShape.type = event.type;
+          });
+    
+          google.maps.event.addListener(map, 'click', function(event) {
+                    mapZoom = map.getZoom();
+                    startLocation = event.latLng;
+                    console.log((startLocation.lat()+" "+startLocation.lng()));
+                    checkCity(startLocation.lat(),startLocation.lng());
+                });
+
+          google.maps.event.addListener(drawingManager, "overlaycomplete", function(event) {
+            overlayClickListener(event.overlay);
+            let polygondt=event.overlay.getPath().getArray();
+            let combo="";
+            let appendData="";
+            $(polygondt).each(function(ii,ee){
+                appendData=(ii==0)?","+ee.lat()+" "+ee.lng():appendData;
+                combo+=(combo!="")?",":"";
+                combo+=ee.lat()+" "+ee.lng();
+            });
+            combo+=appendData;
+            alert("submit and go beck");
+            $('#vertices').val(combo);
+          });
+                
+        }
+    
+        function overlayClickListener(overlay) {
+          google.maps.event.addListener(overlay, "mouseup", function(event) {
+            $('#vertices').val(overlay.getPath().getArray());
+          });
+        }
+        google.maps.event.addDomListener(window, 'load', initialize);
+    
+        function reset_function()
+        {
+            resetopt=true;
+            initialize();
+            
+        }
+    
+    </script>
+    <script type="text/javascript">
+        function initialize() {
+            var input = document.getElementById('city_name');
+            if(input.value.length > 2)
+            {
+                var options = {
+                  types: ["establishment"],
+                  componentRestrictions: {country: ['do', 'ht']}
+                  //componentRestrictions: {country: "us"}
+                };
+                var autocomplete = new google.maps.places.Autocomplete(input);
+    
+                    autocomplete.addListener('place_changed', function () {
+                        var place = autocomplete.getPlace();
+                        // place variable will have all the information you are looking for.
+                        let lat=place.geometry['location'].lat();
+                        let lng=place.geometry['location'].lng();
+                        // $('#map_longitude').focusout();
+                        var position = new google.maps.LatLng(lat, lng);
+                        map.setCenter(position);
+    
+                    });
+    
+                    google.maps.event.addDomListener(input, 'keydown', function(event) { 
+                    if (event.keyCode === 13) { 
+                        event.preventDefault(); 
+                    }
+                }); 
+            }
+        }
+    </script>
+</html>
+
+
+

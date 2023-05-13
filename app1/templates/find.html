@@ -1,0 +1,11 @@
+<html>
+    <h1>Google Map with Polygon Overlay</h1>
+    <div id="map" style="height: 450px; margin: 0px; padding: 0px"></div>
+    <form method="post">
+        {% csrf_token %} 
+        {% comment %} <input name="location" id="location" type=> {% endcomment %}
+        <input  type ="floatformat" name="latitude"  />
+        <input type ="floatformat"  name="longitude"  />
+        <button type="submit">Submit</button>
+    </form>
+</html>
